@@ -1,0 +1,4 @@
+/home/mateusz/MAGISTER/CGP_implem/build/CMakeFiles/rebuild_cache.dir
+/home/mateusz/MAGISTER/CGP_implem/build/CMakeFiles/CGP.dir
+/home/mateusz/MAGISTER/CGP_implem/build/CMakeFiles/edit_cache.dir
+/home/mateusz/MAGISTER/CGP_implem/build/CMakeFiles/CGPlib.dir

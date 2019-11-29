@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/CGP.dir/main.cpp.o  -o CGP libCGPlib.a 

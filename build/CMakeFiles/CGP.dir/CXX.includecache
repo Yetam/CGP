@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/mateusz/MAGISTER/CGP_implem/build/CGPlib.h
+list
+-
+iostream
+-
+cstdlib
+-
+
+/home/mateusz/MAGISTER/CGP_implem/build/main.cpp
+CGPlib.h
+/home/mateusz/MAGISTER/CGP_implem/build/CGPlib.h
+iostream
+-
+

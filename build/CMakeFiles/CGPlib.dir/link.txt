@@ -1,0 +1,2 @@
+/usr/bin/ar qc libCGPlib.a  CMakeFiles/CGPlib.dir/CGP.cpp.o
+/usr/bin/ranlib libCGPlib.a
