@@ -18,4 +18,25 @@ This implementation should provide a class to be inherit from to implement
 user-defined type of object that CGP will manipulate and user-defined
 operaations that CGP will perform on those objects
 
+#### Base class description:
+__**CGP_Algorithm**__
+	* Item Core class of CGP implementation
+	* Item Stores:
+		* Item *Block* objects
+		* Item *functions* performed on *Operational* objects
+	* Item Perform:
+		* Item Cgp init 
+		* Item computes fitness algorithm of genotypes
+		* Item mutations
+		* Item recombinations
 
+__**Block**__
+	* Item Class representing a node in CGP graph
+	* Item Stores:
+		* Item *Operational* object
+		* Item input *Block* pointers
+		* Item its cruciality to current combination
+	
+__**Operational**__
+	* Item class representing an object (its value/s) 
+	* Is virtual class. User defining own object type must inherit from it
