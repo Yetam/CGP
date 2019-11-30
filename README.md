@@ -41,6 +41,18 @@ __**Operational**__
 * Item class representing an object (its value/s) 
 * Is virtual class. User defining own object type must inherit from it
 
+# Should do:
+class **CGP_Algorithm**
+- [ ] Can instantiate an "organism" - a set of connected _Blocks_ with set functions
+- [ ] Initializes organism with nRows and nCols of empty nodes
+- [ ] Creates _Blocks_ in all nodes of organism and connect them in random manner
+- [ ] Can acquire and store functions as pointers. Each function must operate on two _Operational_ objects (functions are static for all organisms)
+- [ ] Can copy entire organism (Copying _Blocks_ from one organism pointer to another)
+- [ ] Can calculate fitness functions of an organism 
+- [ ] Can mutate operation types of an organism with preffered probability
+- [ ] Can mutate connections of an organism with preffered probability
+
+
 # Roadmap
 - [x] Start implementing :)
 - [x] Define architecture of program 
