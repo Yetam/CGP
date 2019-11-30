@@ -20,22 +20,22 @@ operaations that CGP will perform on those objects
 
 #### Base class description:
 __**CGP_Algorithm**__
-	* Item Core class of CGP implementation
-	* Item Stores:
-		* Item *Block* objects
-		* Item *functions* performed on *Operational* objects
-	* Item Perform:
-		* Item Cgp init 
-		* Item computes fitness algorithm of genotypes
-		* Item mutations
-		* Item recombinations
+* Core class of CGP implementation
+* Stores:
+	* *Block* objects
+	* *functions* performed on *Operational* objects
+* Perform:
+	* Cgp init 
+	* computes fitness algorithm of genotypes
+	* mutations
+	* recombinations
 
 __**Block**__
-	* Item Class representing a node in CGP graph
-	* Item Stores:
-		* Item *Operational* object
-		* Item input *Block* pointers
-		* Item its cruciality to current combination
+* Class representing a node in CGP graph
+* Stores:
+	* *Operational* object
+	* input *Block* pointers
+	* its cruciality to current combination
 	
 __**Operational**__
 	* Item class representing an object (its value/s) 
