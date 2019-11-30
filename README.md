@@ -38,5 +38,5 @@ __**Block**__
 	* its cruciality to current combination
 	
 __**Operational**__
-	* Item class representing an object (its value/s) 
-	* Is virtual class. User defining own object type must inherit from it
+* Item class representing an object (its value/s) 
+* Is virtual class. User defining own object type must inherit from it
