@@ -11,6 +11,7 @@ namespace CGP{
   class Operational{
   public:
     Operational(){};
+    virtual void print() = 0; //metoda czysto wirtualna wypisująca jasno i zwięźle wartość obiektu
   };
 
   template <typename T>
@@ -30,7 +31,9 @@ namespace CGP{
 
   public:
 //KONSTRUKTORY
-    Block(int ID, Block * inA, Block * inB){
+    Block(){};
+
+    void BlockSetup(int ID, Block * inA, Block * inB){
       inputA = inA;
       inputB = inB;
       uniqueIdentifier = ID;
@@ -56,7 +59,7 @@ namespace CGP{
   //klasa CGP jest główną klasą przechowującą metody i dane związane z implementacją CGP
   template <typename T>
   class CGP_Algorithm{
-    typedef Operational (* formula)(Operational *valA, Operational *valB);  //definicja wskaznika na funkcje
+    typedef void (* formula)(T *valA, T *valB, T *valOut);  //definicja wskaznika na funkcje
     static formula ** formulas;
     static std::list<formula> formulasList; //lista do ktorej uzytkownik wrzuca zdefiniowane przez siebie funkcje
 
@@ -77,7 +80,7 @@ namespace CGP{
 
       //funkcja dodajaca formula to listy FormulaList
       static void addFormula(formula f){
-        formulasList.push_back(f);
+        CGP_Algorithm<T>::formulasList.push_back(f);
       }
 
       //funkcja  poswiadczajaca, ze wszystkie dodano wszystie przewidziane funkcje
