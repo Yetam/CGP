@@ -22,13 +22,22 @@ operaations that CGP will perform on those objects
 __**CGP_Algorithm**__
 * Core class of CGP implementation
 * Stores:
-	* *Block* objects
+	* *Program* objects
 	* *functions* performed on *Operational* objects
 * Perform:
 	* Cgp init
 	* computes fitness algorithm of genotypes
 	* mutations
 	* recombinations
+
+__**Program**__
+* Class representing full genotype
+* Stores:
+	* *Block* objects
+	* program size (number of rows and columns)
+* Perform
+	* access to each nodes
+
 
 __**Block**__
 * Class representing a node in CGP graph
@@ -80,5 +89,8 @@ __**Operational**__
 
 # Im at:
 * Implementing IntegerOwn class derived from Operational to test if everything works
-	* problems with adding function to formnulasList
-	* probably change from LIst usage to fix table of reasonable size 
+* Change to one more class - *Program* class taht stores the genotype apart from *CGP_Algorithm*
+* Implementic fullstack destructors - currently Program destructor is in manage of keeping everything destroyed
+* about to implement *Program*-s list to *CGP_Algorithm* as family to mutate/evaluate on
+* decide whether evaluation code is up to *CGP_Algorithm* or *Program*. Easier to *CGP_Algorithm*
+* adapt *CGP_Algorithm* to *Program*s architecture

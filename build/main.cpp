@@ -36,7 +36,9 @@ using namespace CGP;
 int main(){
 
     CGP_Algorithm<IntegerOwn> mainCGP(4,4);
-    CGP_Algorithm<IntegerOwn>::addFormula(add);
+    mainCGP.addFormula(add);
+    mainCGP.addFormula(subtract);
+    mainCGP.addFormula(multiply);
 
     IntegerOwn A(2);
     IntegerOwn B(5);

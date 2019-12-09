@@ -32,6 +32,9 @@ namespace CGP{
   public:
 //KONSTRUKTORY
     Block(){};
+    ~Block(){
+      delete value;
+    }
 
     void BlockSetup(int ID, Block * inA, Block * inB){
       inputA = inA;
@@ -56,35 +59,67 @@ namespace CGP{
 
   };
 
+  template <typename T>
+  class Program{
+  public:
+    Block<T> ** genotyp;
+    int nRow;
+    int nCol;
+
+    Program(int rows, int cols){
+      nRow = rows;
+      nCol = cols;
+
+      //inicjalizuje tablice Blocków genotypu
+      genotyp = new Block<T>*[nRow];
+      for(int r=0 ; r<nRow ; r++){
+        genotyp[r] = new Block<T>[nCol]();
+      }
+    }
+    ~Program(){
+      //czyszczenie Operational-ów wewnątrz bloków programu
+        for(int r=0 ; r<nRow ; r++){
+          for(int c=0 ; c<nCol ; c++){
+            delete genotyp;
+          }
+        }
+      //czyszczenie Bloków genotypu
+        //KOD
+      //zwalnianie pamięci zajętej przez genotyp
+      for(int r=0 ; r<nRow ; r++){
+        delete [] genotyp[r];
+      }
+      delete genotyp;
+    }
+  };
+
   //klasa CGP jest główną klasą przechowującą metody i dane związane z implementacją CGP
   template <typename T>
   class CGP_Algorithm{
     typedef void (* formula)(T *valA, T *valB, T *valOut);  //definicja wskaznika na funkcje
-    static formula ** formulas;
-    static std::list<formula> formulasList; //lista do ktorej uzytkownik wrzuca zdefiniowane przez siebie funkcje
+    formula ** formulas;
+    std::list<formula> formulasList; //lista do ktorej uzytkownik wrzuca zdefiniowane przez siebie funkcje
 
     int nRow;       //liczba wierszy siatki operacji
     int nCol;       //liczba kolumn siatki operacji
     int nFormulas;  //liczba możliwych zaimplementowanych operacji
 
     //std::list<T> operations;
-    Block<T> ** blocks;  //tablica na wszystkie bloki uzyte w CGP
+    //Block<T> ** blocks;  //tablica na wszystkie bloki uzyte w CGP
+
 
     public:
       CGP_Algorithm(int rows, int cols): nRow(rows), nCol(cols){
-        blocks = new Block<T>*[nRow];
-        for(int r=0; r<nRow; r++){
-          blocks[r] = new Block<T>[nCol];
-        }
+
       }
 
       //funkcja dodajaca formula to listy FormulaList
-      static void addFormula(formula f){
-        CGP_Algorithm<T>::formulasList.push_back(f);
+      void addFormula(formula f){
+        formulasList.push_back(f);
       }
 
       //funkcja  poswiadczajaca, ze wszystkie dodano wszystie przewidziane funkcje
-      static void enoughFormulas(){
+      void enoughFormulas(){
         formulas = new formula*[formulasList.size()];
         for(int i=0 ; i<formulasList.size() ; i++)
           formulas[i] = formulasList.pop_front();
