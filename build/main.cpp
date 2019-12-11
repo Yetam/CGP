@@ -19,6 +19,9 @@ using namespace CGP;
     void print(){
       std::cout << val << std::endl;
     }
+    void copy(IntegerOwn * src, IntegerOwn * dst){
+      dst->setVal( dst->getVal() );
+    }
 
   };
 
@@ -35,16 +38,10 @@ using namespace CGP;
 
 int main(){
 
-    CGP_Algorithm<IntegerOwn> mainCGP(4,4);
+    CGP_Algorithm<IntegerOwn> mainCGP(4,4,2,2);
     mainCGP.addFormula(add);
     mainCGP.addFormula(subtract);
     mainCGP.addFormula(multiply);
 
-    IntegerOwn A(2);
-    IntegerOwn B(5);
-    IntegerOwn C(0);
 
-    add(&A,&B,&C);
-    C.print();
-    //Operational * a = new Operational();
 }

@@ -88,9 +88,5 @@ __**Operational**__
 - [ ] Define architecture of crossing two algorithms
 
 # Im at:
-* Implementing IntegerOwn class derived from Operational to test if everything works
-* Change to one more class - *Program* class taht stores the genotype apart from *CGP_Algorithm*
-* Implementic fullstack destructors - currently Program destructor is in manage of keeping everything destroyed
-* about to implement *Program*-s list to *CGP_Algorithm* as family to mutate/evaluate on
-* decide whether evaluation code is up to *CGP_Algorithm* or *Program*. Easier to *CGP_Algorithm*
-* adapt *CGP_Algorithm* to *Program*s architecture
+* defining copy functions for Program, Build, Block and Operational
+* @ is being defined to be able to copy organism from parent to offspring

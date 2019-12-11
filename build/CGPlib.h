@@ -7,12 +7,21 @@
 
 namespace CGP{
 
+//============================================================================//
+//==========================     klasa Operational    ========================//
+//============================================================================//
+
   //KLASA ABSTRAKCYJNA, PIERWOWZOR DO TWORZENIA OBIEKTÓW WARTOSCI NA KTÓRYCH OPERUJE CGP
   class Operational{
   public:
     Operational(){};
     virtual void print() = 0; //metoda czysto wirtualna wypisująca jasno i zwięźle wartość obiektu
+    virtual void copy(Operational * src, Operational * dst) = 0;
   };
+
+//============================================================================//
+//==========================        klasa Block       ========================//
+//============================================================================//
 
   template <typename T>
   class Block{
@@ -57,7 +66,14 @@ namespace CGP{
 //METODY PODRZĘDNE
     void print();
 
+    void copyBlock(Block * src, Block * dst){
+      
+    }
   };
+
+//============================================================================//
+//==========================       klasa Program      ========================//
+//============================================================================//
 
   template <typename T>
   class Program{
@@ -66,7 +82,8 @@ namespace CGP{
     int nRow;
     int nCol;
 
-    Program(int rows, int cols){
+    Program(){};
+    void initProgram(int rows, int cols){
       nRow = rows;
       nCol = cols;
 
@@ -91,25 +108,59 @@ namespace CGP{
       }
       delete genotyp;
     }
+
+    void copyProgram(Program src, Program dst){
+
+    }
   };
+
+//============================================================================//
+//==========================    klasa CGP_Algorithm   ========================//
+//============================================================================//
 
   //klasa CGP jest główną klasą przechowującą metody i dane związane z implementacją CGP
   template <typename T>
   class CGP_Algorithm{
-    typedef void (* formula)(T *valA, T *valB, T *valOut);  //definicja wskaznika na funkcje
-    formula ** formulas;
-    std::list<formula> formulasList; //lista do ktorej uzytkownik wrzuca zdefiniowane przez siebie funkcje
+
+    //DEKLARACJE DOT. FUNKCJI UŻYWANYCH PRZEZ CGP
+    typedef void (* formula)(T *valA, T *valB, T *valOut);    //definicja typu wskaznika na fcje
+    formula ** formulas;                                      //tablica dyn. alok. wsk. na fcje
+    std::list<formula> formulasList;                          //lista do ktorej uzytkownik wrzuca zdefiniowane przez siebie funkcje
 
     int nRow;       //liczba wierszy siatki operacji
     int nCol;       //liczba kolumn siatki operacji
     int nFormulas;  //liczba możliwych zaimplementowanych operacji
+    int mu;         //wielkość populacji rodziców
+    int lambda;      //wielkośc populacji potomstwa
 
-    //std::list<T> operations;
-    //Block<T> ** blocks;  //tablica na wszystkie bloki uzyte w CGP
+    //DEKLARACJE PUL ORGANIZMÓW UŻYWANYCH PRZEZ CGP
+    Program<T> ** parentPull;    //pula rodziców
+    Program<T> ** childrenPull;  //pula potomków
 
+    //DEKLARACJE FUNKCJI ROZRODCZYCH
+    void makeOffspring(){
+      //czyszczenie aktualnej puli dzieci
+      for(int i=0 ; i<lambda ; i++){
+        delete childrenPull[i];
+      }
+
+    }
 
     public:
-      CGP_Algorithm(int rows, int cols): nRow(rows), nCol(cols){
+      CGP_Algorithm(int rows, int cols, int muVal, int lambdaVal): nRow(rows), nCol(cols), mu(muVal), lambda(lambdaVal){
+        //tworzenie i inicjalizacja Programów z puli rodziców
+        parentPull = new Program<T>*[mu];             //init puli rodziców
+        for(int i=0 ; i<mu ; i++){
+          parentPull[i] = new Program<T>();           //tworzy obiekt z puli rodziców
+          parentPull[i]->initProgram(nRow,nCol);      //init rodzica
+        }
+
+        //tworzenie i inicjalizacja Programów z puli dzieci
+        childrenPull = new Program<T>*[lambda];       //init puli dzieci
+        for(int i=0 ; i<lambda ; i++){
+          childrenPull[i] = new Program<T>();         //tworzy obiekt z puli dzieci
+          childrenPull[i]->initProgram(nRow,nCol);    //init dziecka
+        }
 
       }
 
@@ -121,9 +172,11 @@ namespace CGP{
       //funkcja  poswiadczajaca, ze wszystkie dodano wszystie przewidziane funkcje
       void enoughFormulas(){
         formulas = new formula*[formulasList.size()];
+        nFormulas = formulasList.size();
         for(int i=0 ; i<formulasList.size() ; i++)
           formulas[i] = formulasList.pop_front();
       }
+
 
   };
 
