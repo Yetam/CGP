@@ -5,21 +5,21 @@
 using namespace CGP;
 
 
-  class IntegerOwn : public Operational{
+  class IntegerOwn{ // : public Operational{
     int val; //integer value
 
   public:
     //co tu sie dzieje - Zmienne tworza N
     //Integer(int startVal);
 
-    IntegerOwn(){val = 0;}
+    IntegerOwn(){val = 2;}                      //WYMAGANA
     IntegerOwn(int newVal){val=newVal;}
     void setVal(int newVal){val = newVal;}
     int getVal(){return val;}
-    void print(){
+    void print(){                               //WYMAGANA
       std::cout << val << std::endl;
     }
-    void copy(IntegerOwn * src, IntegerOwn * dst){
+    void copy(IntegerOwn * src, IntegerOwn * dst){      //WYMAGANA
       dst->setVal( dst->getVal() );
     }
 
@@ -37,11 +37,11 @@ using namespace CGP;
 
 
 int main(){
-
-    CGP_Algorithm<IntegerOwn> mainCGP(4,4,2,2);
-    mainCGP.addFormula(add);
-    mainCGP.addFormula(subtract);
-    mainCGP.addFormula(multiply);
+    CGP_Algorithm<IntegerOwn> mainCGP(1,1);
+    mainCGP.setOrganism(2,12,1);
+    //mainCGP.addFormula(add);
+  //  mainCGP.addFormula(subtract);
+    //mainCGP.addFormula(multiply);
 
 
 }
