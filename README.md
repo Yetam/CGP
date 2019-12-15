@@ -74,19 +74,16 @@ __**Operational**__
 - [ ] Must be inherited for user-defined object (value)
 
 # Roadmap
-- [x] Start implementing :)
-- [x] Define architecture of program
-- [x] Implement template-ness so that user inherit *Operational* can be imposed
-- [x] Adding *formulas* to *CGP_Algorithm* so that user only adds by *addFormula()* method, and ends with *enoughFormulas()* method
-- [ ] Blocks setup on grid and *fasion* they are arranged in
-- [ ] Define architecture of running of CGP_Algorithm
-- [ ] Define architecture of evaluating current set of Blocks into fitness
-- [ ] Implement virtual methods in *Operational* reauired by running and evaluating architecture
-- [ ] Define genetic strategies possible in this implementations
-- [ ] Define architecture of offspring generation
-- [ ] Define architecture of mutation
-- [ ] Define architecture of crossing two algorithms
+- [x] CGP_Algorithm creates family of mu parents and lanbda offspring
+- [x] It is possible to add functions that operate on n inputs and produce one output
+- [x] Created program initializes itself with *inputs* of inputs, *formulas* of formulas and *outputs* of outputs Blocks stored as vector of pointers to each Block
+- [x] When Block is created it allocates its *value*
+- [ ] Program destructor must call for all Block destructors
+- [ ] Block destructor must call for all values destructor
+- [ ] Program able to mutate random Block with *p* chance
 
-# Im at:
-* defining copy functions for Program, Build, Block and Operational
-* @ is being defined to be able to copy organism from parent to offspring
+
+# Meeting TODO:
+- [x] Program has one dimensional Block graph
+- [x] formulas accepts any number of input arguments as array
+- [x] Block has an array of inputs
