@@ -78,9 +78,10 @@ __**Operational**__
 - [x] It is possible to add functions that operate on n inputs and produce one output
 - [x] Created program initializes itself with *inputs* of inputs, *formulas* of formulas and *outputs* of outputs Blocks stored as vector of pointers to each Block
 - [x] When Block is created it allocates its *value*
-- [ ] Program destructor must call for all Block destructors
-- [ ] Block destructor must call for all values destructor
-- [ ] Program able to mutate random Block with *p* chance
+- [x] Program destructor must call for all Block destructors
+- [x] Block destructor must call for all values destructor
+- [ ] Completly copy a *Program* with pointer *src* to location under pointer *dst*.Copying must be done only on a *Program* level so that the dependecies between *Blocks* in *src* can be achieved in *dst*
+- [ ] Program able to mutate random Block with *p* chanceG
 
 
 # Meeting TODO:
