@@ -13,6 +13,10 @@ iostream
 -
 cstdlib
 -
+vector
+-
+time.h
+-
 
 /home/mateusz/MAGISTER/CGP_implem/build/main.cpp
 CGPlib.h

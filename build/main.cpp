@@ -37,8 +37,16 @@ using namespace CGP;
 
 
 int main(){
-    CGP_Algorithm<IntegerOwn> mainCGP(1,1);
-    mainCGP.setOrganism(2,12,1);
+    srand(time(NULL));
+
+    CGP_Algorithm<IntegerOwn> mainCGP(2,2);
+    mainCGP.setOrganism(2,2,2);
+    std::cout << "Inicjalizacja zakonczona skucesem" << std::endl;
+    mainCGP.listOrganisms('a');
+
+    mainCGP.testCopyingPrograms(1,2);
+    mainCGP.listOrganisms('a');
+
     //mainCGP.addFormula(add);
   //  mainCGP.addFormula(subtract);
     //mainCGP.addFormula(multiply);
