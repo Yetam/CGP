@@ -24,31 +24,70 @@ using namespace CGP;
     }
 
   };
+  /* std::vector<T*> * funcInputs, T *funcOutput */
+  void add(std::vector<IntegerOwn*> * funcInputs, IntegerOwn *funcOutput){
+    //out->setVal( a->getVal() + b->getVal() );
+    int output=0;
+    for(int i=0 ; i<funcInputs->size() ; i++){
+      output += funcInputs->at(i)->getVal();
+    }
+    funcOutput->setVal(output);
+  }
+  void multiply(std::vector<IntegerOwn*> * funcInputs, IntegerOwn *funcOutput){
+    //out->setVal( a->getVal() + b->getVal() );
+    int output=1;
+    for(int i=0 ; i<funcInputs->size() ; i++){
+      output *= funcInputs->at(i)->getVal();
+    }
+    funcOutput->setVal(output);
+  }
 
-  void add(IntegerOwn *a, IntegerOwn *b, IntegerOwn *out){
-    out->setVal( a->getVal() + b->getVal() );
+  void getRandomInput(IntegerOwn * placeForNewVal){
+    placeForNewVal = new IntegerOwn(rand()%60 - 30);
   }
-  void subtract(IntegerOwn *a, IntegerOwn *b, IntegerOwn *out){
-    out->setVal( a->getVal() - b->getVal() );
-  }
-  void multiply(IntegerOwn *a, IntegerOwn *b, IntegerOwn *out){
-    out->setVal( a->getVal() - b->getVal() );
+
+  double fitnessFunction(std::vector<IntegerOwn*> * inValues, std::vector<IntegerOwn*> * outValues){
+    double correctValue;
+    double programGuess;
+
+    correctValue = inValues->at(0)->getVal() + inValues->at(0)->getVal() * inValues->at(1)->getVal();
+    programGuess = outValues->at(0)->getVal();
+
+    return (correctValue - programGuess)*(correctValue - programGuess);
   }
 
 
 int main(){
     srand(time(NULL));
-
+/*
     CGP_Algorithm<IntegerOwn> mainCGP(2,2);
-    mainCGP.setOrganism(2,2,2);
+    mainCGP.addFormula(add,2);
+    mainCGP.addFormula(multiply,2);
+    mainCGP.enoughFormulas();
+
+    mainCGP.setOrganism(4,3,2);
     std::cout << "Inicjalizacja zakonczona skucesem" << std::endl;
     mainCGP.listOrganisms('a');
 
     mainCGP.testCopyingPrograms(1,2);
+    mainCGP.testMutate(8);
+    mainCGP.listOrganisms('a');
+*/
+    CGP_Algorithm<IntegerOwn> mainCGP(2,2);
+    mainCGP.addFormula(add,2);
+    mainCGP.addFormula(multiply,2);
+    mainCGP.enoughFormulas();
+
+    mainCGP.setOrganism(4,3,2);
+    std::cout << "Inicjalizacja zakonczona skucesem" << std::endl;
+    mainCGP.listOrganisms('a');
+
+    mainCGP.testCopyingPrograms(1,2);
+    mainCGP.testMutate(8);
     mainCGP.listOrganisms('a');
 
     //mainCGP.addFormula(add);
-  //  mainCGP.addFormula(subtract);
+    //mainCGP.addFormula(subtract);
     //mainCGP.addFormula(multiply);
 
 

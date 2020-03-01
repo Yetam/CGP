@@ -80,8 +80,11 @@ __**Operational**__
 - [x] When Block is created it allocates its *value*
 - [x] Program destructor must call for all Block destructors
 - [x] Block destructor must call for all values destructor
-- [ ] Completly copy a *Program* with pointer *src* to location under pointer *dst*.Copying must be done only on a *Program* level so that the dependecies between *Blocks* in *src* can be achieved in *dst*
+- [x] Completly copy a *Program* with pointer *src* to location under pointer *dst*.Copying must be done only on a *Program* level so that the dependecies between *Blocks* in *src* can be achieved in *dst*
 - [ ] Program able to mutate random Block with *p* chanceG
+	- [ ] mutating connections
+	- [ ] mutating formula
+- [ ] Making offspring from the best adult which should be as first
 
 
 # Meeting TODO:
