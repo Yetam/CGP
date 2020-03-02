@@ -43,7 +43,8 @@ using namespace CGP;
   }
 
   void getRandomInput(IntegerOwn * placeForNewVal){
-    placeForNewVal = new IntegerOwn(rand()%60 - 30);
+    //placeForNewVal = new IntegerOwn(rand()%60 - 30);
+    placeForNewVal->setVal(rand()%60 - 30);
   }
 
   double fitnessFunction(std::vector<IntegerOwn*> * inValues, std::vector<IntegerOwn*> * outValues){
@@ -73,22 +74,27 @@ int main(){
     mainCGP.testMutate(8);
     mainCGP.listOrganisms('a');
 */
-    CGP_Algorithm<IntegerOwn> mainCGP(2,2);
+    CGP_Algorithm<IntegerOwn> mainCGP(1,3);
     mainCGP.addFormula(add,2);
     mainCGP.addFormula(multiply,2);
     mainCGP.enoughFormulas();
+    mainCGP.addFitnessFunction(fitnessFunction);
+    mainCGP.addRandomFiller(getRandomInput);
 
-    mainCGP.setOrganism(4,3,2);
+    mainCGP.setOrganism(2,2,1);
     std::cout << "Inicjalizacja zakonczona skucesem" << std::endl;
-    mainCGP.listOrganisms('a');
 
-    mainCGP.testCopyingPrograms(1,2);
-    mainCGP.testMutate(8);
-    mainCGP.listOrganisms('a');
+    //mainCGP.listOrganisms('a');
+    mainCGP.doCGP(1000,100);
+    //mainCGP.listOrganisms('a');
+
+    //mainCGP.testCopyingPrograms(1,2);
+    //mainCGP.testMutate(8);
+    //mainCGP.listOrganisms('a');
 
     //mainCGP.addFormula(add);
     //mainCGP.addFormula(subtract);
     //mainCGP.addFormula(multiply);
 
-
+    std::cout << "Get to the choppa" << std::endl;
 }

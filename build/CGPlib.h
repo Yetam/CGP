@@ -6,6 +6,7 @@
 #include<cstdlib>
 #include<vector>
 #include<time.h>
+#include<bits/stdc++.h>
 
 namespace CGP{
 
@@ -73,6 +74,7 @@ namespace CGP{
     int getId(){return id;}
     int getType(){return type;}
     int getFormulaId(){return formulaId;}
+    std::vector<T*> * getInputValuesPointer(){return &inputValues;}
     int getNofInputs(){return inputs.size();}
     Block<T> * getNthInput(int n){
       if(n<inputs.size()){
@@ -190,6 +192,7 @@ namespace CGP{
     }
 
     int getNumberOfGenes(){return genes.size();}
+    int getNofInputGenes(){return inputs;}
     int getID(){return id;}
     void setID(int newID){id = newID;}
     Block<T> * getGeneAt(int n){return genes.at(n);}
@@ -197,10 +200,10 @@ namespace CGP{
     void addGene(Block<T> * blockToAdd){genes.push_back(blockToAdd);}
     void returnDataIntoVectors(std::vector<T*> * inputsVector, std::vector<T*> * outputsVector){
       for(int i=0 ; i<inputs ; i++){
-        inputsVector.push_back( genes.at(i).returnValueOfBlock() );
+        inputsVector->push_back( genes.at(i)->returnValueOfBlock() );
       }
       for(int i=inputs+formulas ; i<genes.size() ; i++){
-        outputsVector.push_back( genes.at(i).returnValueOfBlock() );
+        outputsVector->push_back( genes.at(i)->returnValueOfBlock() );
       }
     }
     void dropGenes(){
@@ -267,7 +270,7 @@ namespace CGP{
     //==========================================================================
     void propagateForwardFull(){
       for(int currGene = inputs ; currGene<genes.size() ; currGene++){
-        formulasList.at(genes.at(currGene)->getFormulaId())(&genes.at(currGene)->inputValues , genes.at(currGene)->value);
+        formulasList.at(genes.at(currGene)->getFormulaId())(genes.at(currGene)->getInputValuesPointer() , genes.at(currGene)->returnValueOfBlock());
       }
     }
     //==========================================================================
@@ -283,8 +286,22 @@ namespace CGP{
 
     //LISTING
     void printProgram(){
+      std::cout << "ID_programu: " << getID() << std::endl;
       for(int i=0 ; i<genes.size() ; i++){
         genes.at(i)->printBlock();
+      }
+    }
+
+    void printInputValues(){
+      std::cout << "in of ID: " << id << std::endl;
+      for(int i=0;i<inputs;i++){
+        std::cout <<  genes.at(i)->returnValueOfBlock()->getVal() << "\t" << std::endl;
+      }
+    }
+    void printOutputValues(){
+      std::cout << "out of ID: " << id << std::endl;
+      for(int i=inputs+formulas ; i<genes.size() ; i++){
+        std::cout <<  genes.at(i)->returnValueOfBlock()->getVal() << "\t" << std::endl;
       }
     }
   };
@@ -314,6 +331,7 @@ namespace CGP{
     typedef double (* calcFitness)(std::vector<T*> * inputs, std::vector<T*> * outputs);               //sama funkcja celu, przyjmuje inputy jako wzór i outputy jako przedmiot oceny
     typedef void (* getRandomInput)( T * whereToWriteValue);
     calcFitness fitFunc;
+    getRandomInput randVal;
     std::vector<double> fitnessValues;
 
     int mu;         //wielkość populacji rodziców
@@ -372,16 +390,18 @@ namespace CGP{
       *   TUTAJ CGP JUŻ COŚ ROBI
       */
       //główna funkcja procedująca algorytm CGP dla tego obiektu CGP_Algorithm
-      void doCGP(int epochs){
+      void doCGP(int epochs, int averagingEpochs){
 
         for(int i=0 ; i<epochs ; i++){
 
           //zakładając że CGP jest już skonfigurowane, czyli istnieją rodzice i dzieci jakkolwiek zainicjalizowane
-
-          //calculateFitnessForAllOrganisms();      //oblicz dopasowanie wszystkich organizmów
-          //chooseBestNewParents();                 //wyznacz najlepsze organizmy które od teraz stają się rodzicami, a reszta staje się dziećmi
-          //createOffspring();                      //wypelnij luki po dzieciach nowymi dziecmi z nowych rodzicow
-          //mutateOffspring();                      //zmutuj zgodnie z regula wszystkie dzieci
+          for(int avgEp=0; avgEp<averagingEpochs ; avgEp++){
+              evaluateOrganisms();                    //wykonaj jeden raz dzialanie programu
+              calculateFitnessForAllOrganisms(averagingEpochs);      //oblicz dopasowanie wszystkich organizmów
+          }
+          chooseBestNewParents();                 //wyznacz najlepsze organizmy które od teraz stają się rodzicami, a reszta staje się dziećmi
+          createOffspring();                      //wypelnij luki po dzieciach nowymi dziecmi z nowych rodzicow
+          mutateOffspring();                      //zmutuj zgodnie z regula wszystkie dzieci
 
         }
 
@@ -389,16 +409,87 @@ namespace CGP{
       /*
       *   NARZĘDZIE GŁÓWNEGO WYKONANIA (wykorzystywane przez doCGP())
       */
-      void calculateFitnessForAllOrganisms(){
+      void evaluateOrganisms(){
+        //losowo wypelnij inputy
+        for(int org=0 ; org<organisms.size() ; org++){
+          for(int inp=0; inp<organisms.at(org)->getNofInputGenes() ; inp++ ){
+            randVal(organisms.at(org)->getGeneAt(inp)->returnValueOfBlock());  //zapisz losowa wartosc do inp-owego inputu organizmu ,,org,,
+          }
+        }
+        //przepropaguj inputy do outputow
+        for(int org=0 ; org<organisms.size() ; org++){
+            //organisms.at(org)->printInputValues();
+            organisms.at(org)->propagateForwardFull();
+            //organisms.at(org)->printOutputValues();
+        }
+      }
+
+      void calculateFitnessForAllOrganisms(double averagingRounds = 1){
         std::vector<T*> inValues;//stworz wektor na liste wejsciowych
         std::vector<T*> outValues;//stworz wektor na liste wyjsciowych
-        fitnessValues.clear();//wyczysc wektor wartosci fitnesow, bo porzeciez teraz beda nowe
+        //fitnessValues.clear();//wyczysc wektor wartosci fitnesow, bo porzeciez teraz beda nowe
+
         for(int i=0 ; i<organisms.size() ; i++){
           inValues.clear();//wyzeruj wektor wejsciowych
           outValues.clear();//wyzeruj wektor wyjsciowych
-          organisms.at(i).returnDataIntoVectors(&inValues, &outValues);//dla itego programu pobierz wektory wejsiowe i wyjsciowe
-          fitnessValues.push_back( fitFunc( &inValues, &outValues ) );//oblicz do itego fitnessValues fitness itego organizmu
+          organisms.at(i)->returnDataIntoVectors(&inValues, &outValues);//dla itego programu pobierz wektory wejsiowe i wyjsciowe
+          if(fitnessValues.size() < organisms.size()){
+            fitnessValues.push_back( fitFunc( &inValues, &outValues ) / averagingRounds );//oblicz do itego fitnessValues fitness itego organizmu
+          }
+          else{
+            fitnessValues.at(i) += fitFunc( &inValues, &outValues ) / averagingRounds;
+          }
+
         }
+    }
+    void chooseBestNewParents(){
+      //ustaw wszytskim ID na dodatnie (jako dzieci) oraz ustaw fitnessValue na 0
+      for(int i=0 ; i<organisms.size() ; i++){
+        organisms.at(i)->setID( std::abs( organisms.at(i)->getID() ) );
+      }
+
+      //znajdz wartosc najmniejsza fitnessFunction i jej indeks
+      double minFitVal = DBL_MAX;
+      int minFitIndex =0;
+      for(int i=0 ; i<fitnessValues.size() ; i++){
+        if( fitnessValues.at(i) < minFitVal ){
+          minFitVal = fitnessValues.at(i);
+          minFitIndex = i;
+        }
+      }
+
+
+      //zmien ID na ujemne, bo to nowy rodzic
+      organisms.at(minFitIndex)->setID( organisms.at(minFitIndex)->getID() * (-1) );
+      std::cout << "Miniimum fitness: " << minFitVal << std::endl;
+      //Jezeli liczba rodzicow >1 to trzeba dodac tutaj petle, ktora wyrzuci s fitnessValues minimlane,
+      //znowu znajdzie minimum i zmieni mu ID na ujemne
+      fitnessValues.clear();
+  }
+    void createOffspring(){
+      //znajdz program o ujemnym ID
+      int parentIndex=0;
+      for(int i=0 ; i<organisms.size() ; i++){
+        if(organisms.at(i)->getID() < 0){
+          parentIndex = i;
+          break;
+        }
+      }
+
+      //skopiuj go do wszystkich oprócz siebie
+      for(int i=0 ; i<organisms.size() ; i++){
+        if( i != parentIndex ){
+          copyProgram(organisms.at(parentIndex), organisms.at(i));
+          organisms.at(i)->setID( abs( organisms.at(i)->getID() ) );
+        }
+      }
+    }
+    void mutateOffspring(){
+      //mutateProgram(int denominatorOfChance)
+      for(int i=0 ; i<organisms.size() ; i++){
+        if( organisms.at(i)->getID() >= 0 )
+          organisms.at(i)->mutateProgram(100);
+      }
     }
 
 
@@ -407,13 +498,11 @@ namespace CGP{
       */
 
       void listOrganisms(char mode){
-        if(mode = 'a'){
-          std::cout << "WYPISUJE ID PROGRAMÓW:" << std::endl;
+          std::cout << "WYPISUJE ID PROGRAMÓW: of " << organisms.size() << std::endl;
           for(int i=0 ; i<organisms.size() ; i++){ //nOfOutputs,formulasList
-            std::cout << organisms.at(i)->getID()<< std::endl;
+            //std::cout << organisms.at(i)->getID()<< std::endl;
             organisms.at(i)->printProgram();
           }
-        }
       }
 
       //funkcja dodajaca formula to listy FormulaList
@@ -432,6 +521,9 @@ namespace CGP{
       }
       void addFitnessFunction(calcFitness f){
         fitFunc = f;
+      }
+      void addRandomFiller(getRandomInput f){
+        randVal = f;
       }
 
       int getNumberOfFormulas(){
