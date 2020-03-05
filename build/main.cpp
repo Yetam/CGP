@@ -44,14 +44,14 @@ using namespace CGP;
 
   void getRandomInput(IntegerOwn * placeForNewVal){
     //placeForNewVal = new IntegerOwn(rand()%60 - 30);
-    placeForNewVal->setVal(rand()%60 - 30);
+    placeForNewVal->setVal(rand()%100);
   }
 
   double fitnessFunction(std::vector<IntegerOwn*> * inValues, std::vector<IntegerOwn*> * outValues){
     double correctValue;
     double programGuess;
 
-    correctValue = inValues->at(0)->getVal() + inValues->at(0)->getVal() * inValues->at(1)->getVal();
+    correctValue = inValues->at(1)->getVal() + inValues->at(0)->getVal() + inValues->at(0)->getVal() * inValues->at(1)->getVal();
     programGuess = outValues->at(0)->getVal();
 
     return (correctValue - programGuess)*(correctValue - programGuess);
@@ -60,41 +60,34 @@ using namespace CGP;
 
 int main(){
     srand(time(NULL));
-/*
-    CGP_Algorithm<IntegerOwn> mainCGP(2,2);
+    /*
+    //  Stworz obiekt CGP_ALgorithm.
+    //  Argumenty:
+    //    -(int) liczba genów wejściowych
+    //    -(int) liczba genów procesujących
+    //    -(int) liczba genów wyjściowych
+    //    -(func_ptr) wskaźnik na funkcję celu
+    //    -(func_ptr) wskaźnik na funkcję zwracającą losową wartość obiektu algorytmu
+    */
+    CGP_Algorithm<IntegerOwn> mainCGP(2,6,1,fitnessFunction,getRandomInput);
+
+    /*
+    //  Dodawanie formuł możliwych do wykorzystania w genach
+    //  Argumenty:
+    //    -(func_ptr) wskaźnik na funkcję dla formuły
+    //    -(int) liczba argumentów którą przyjmuje dana funkcja formuły
+    */
     mainCGP.addFormula(add,2);
     mainCGP.addFormula(multiply,2);
-    mainCGP.enoughFormulas();
 
-    mainCGP.setOrganism(4,3,2);
-    std::cout << "Inicjalizacja zakonczona skucesem" << std::endl;
+    /*
+    //  Uruchomienie algorytmu CGP_Algorithm
+    //  Argumenty:
+    //    -(int) liczba epok algorytmu
+    //    -(int) liczba uśrednień wartości fcji celu w jednej epoce
+    */
+    mainCGP.doCGP(100,10000);
     mainCGP.listOrganisms('a');
-
-    mainCGP.testCopyingPrograms(1,2);
-    mainCGP.testMutate(8);
-    mainCGP.listOrganisms('a');
-*/
-    CGP_Algorithm<IntegerOwn> mainCGP(1,3);
-    mainCGP.addFormula(add,2);
-    mainCGP.addFormula(multiply,2);
-    mainCGP.enoughFormulas();
-    mainCGP.addFitnessFunction(fitnessFunction);
-    mainCGP.addRandomFiller(getRandomInput);
-
-    mainCGP.setOrganism(2,2,1);
-    std::cout << "Inicjalizacja zakonczona skucesem" << std::endl;
-
-    //mainCGP.listOrganisms('a');
-    mainCGP.doCGP(1000,100);
-    //mainCGP.listOrganisms('a');
-
-    //mainCGP.testCopyingPrograms(1,2);
-    //mainCGP.testMutate(8);
-    //mainCGP.listOrganisms('a');
-
-    //mainCGP.addFormula(add);
-    //mainCGP.addFormula(subtract);
-    //mainCGP.addFormula(multiply);
 
     std::cout << "Get to the choppa" << std::endl;
 }
