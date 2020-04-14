@@ -5,7 +5,7 @@
 #include<iostream>
 #include<cstdlib>
 #include<vector>
-#include<time.h>
+#include<ctime>
 #include<bits/stdc++.h>
 
 namespace CGP{
@@ -75,6 +75,9 @@ namespace CGP{
     T * returnValueOfBlock(){
       return value;
     }
+    void setValueOfBlock(T newValue){
+      *value = newValue;
+    }
     //ustawia ID formuly przypisanej do tego bloku
     void setFormulaId(int newFormulaId){formulaId = newFormulaId;}
     //dodaje wejscie na koncu listy wejsc polaczonych z tym blokiem
@@ -109,6 +112,7 @@ namespace CGP{
   class Program{
 
     std::vector<Block<T> *> genes;
+    std::vector<T*> thisProgramOutputValues;
     int inputs;
     int formulas;
     int outputs;
@@ -124,27 +128,27 @@ namespace CGP{
 
       public:
     Program(int progID, int nOfInputs, int nOfFormulas,  int nOfOutputs,  std::vector<formula> formulasListPointer, int maxInputs): id(progID), inputs(nOfInputs), formulas(nOfFormulas), outputs(nOfOutputs), formulasList(formulasListPointer), maxInputsToFurmula(maxInputs) /*blockInputs(nOfBlockInputs)*/{
-      std::cout << "\tProgram() Id:" << progID << std::endl;
+      //std::cout << "\tProgram() Id:" << progID << std::endl;
 
       int currentID=0;
       Block<T> * blockToBeAdded;
 
       //dodawanie bloków wejściowych
-      std::cout << "\t/dodawanie bloków wejściowych/" << std::endl;
+      //std::cout << "\t/dodawanie bloków wejściowych/" << std::endl;
       for(int i=0 ; i<inputs ; i++){
         blockToBeAdded = new Block<T>(currentID,-1);
         genes.push_back(blockToBeAdded);
         currentID++;
       }
       //dodawanie bloków funkcyjnych
-      std::cout << "\t/dodawanie bloków funkcyjnych/" << std::endl;
+      //std::cout << "\t/dodawanie bloków funkcyjnych/" << std::endl;
       for(int i=0 ; i<formulas ; i++){
         blockToBeAdded = new Block<T>(currentID,0);
         genes.push_back(blockToBeAdded);
         currentID++;
       }
       //dodawanie bloków wyjściowych
-      std::cout << "\t/dodawanie bloków wyjsciowych/" << std::endl;
+      //std::cout << "\t/dodawanie bloków wyjsciowych/" << std::endl;
       for(int i=0 ; i<outputs ; i++){
         blockToBeAdded = new Block<T>(currentID,1);
         genes.push_back(blockToBeAdded);
@@ -161,12 +165,16 @@ namespace CGP{
           genes.at(i)->addInput( genes.at(rand()%i) );                          //dodawanie jednego z wcześniejszych genów jako inputu. UWAGA - inputy mogą być swoimi duplikatami
       }
 
+      for(int currOutGene=(inputs+formulas) ; currOutGene<genes.size() ; currOutGene++){
+        thisProgramOutputValues.push_back(genes.at(currOutGene)->returnValueOfBlock());
+      }
+
   };
 
     ~Program(){
-      std::cout << "\tUsuwam Program ID: "<< id << std::endl;
+      //std::cout << "\tUsuwam Program ID: "<< id << std::endl;
       for(int i=0 ; i<genes.size() ; i++){
-        std::cout << "\tUsuwam gen ID: " << i << std::endl;
+        //std::cout << "\tUsuwam gen ID: " << i << std::endl;
         delete genes[i];
       }
     }
@@ -257,34 +265,56 @@ namespace CGP{
                         );
 //std::cout << "(122)" << std::endl;
       }
+
+      //aktualizacja wektora wartosci wyjsciowych
+      thisProgramOutputValues.clear();
+      for(int currOutGene=(inputs+formulas) ; currOutGene<genes.size() ; currOutGene++){
+        thisProgramOutputValues.push_back(genes.at(currOutGene)->returnValueOfBlock());
+      }
     }
     //==========================================================================
     //    Obliczanie funkcji dopasowania
     //==========================================================================
-    void calculateFitness(){
+    /*void calculateFitness(){
       //ustaw wartosci poczatkowe
       for(int currGene = inputs ; currGene<genes.size() ; currGene++){
 
       }
+    }*/
+
+    std::vector<T*> * calcFitnessValue( std::vector<T> * inputValues ){
+        //ustaw wartości w organiźmie
+        if(inputValues->size() != inputs)
+          std::cerr << "Fitness function input list size not equal to program input list size" << std::endl;
+        for(int currGene = 0 ; currGene<inputs ; currGene++){
+          genes.at(currGene)->setValueOfBlock( inputValues->at(currGene) );
+        }
+        propagateForwardFull();
+        return &thisProgramOutputValues;
     }
 
+    void setupFunctionsInGenes(){
+      for(int currGene=0;currGene<genes.size();currGene++){
+        genes.at(currGene)->setFormulaId( rand()%formulasList.size()  );
+      }
+    }
 
     //LISTING
     void printProgram(){
-      std::cout << "ID_programu: " << getID() << std::endl;
+      //std::cout << "ID_programu: " << getID() << std::endl;
       for(int i=0 ; i<genes.size() ; i++){
         genes.at(i)->printBlock();
       }
     }
 
     void printInputValues(){
-      std::cout << "in of ID: " << id << std::endl;
+      //std::cout << "in of ID: " << id << std::endl;
       for(int i=0;i<inputs;i++){
         std::cout <<  genes.at(i)->returnValueOfBlock()->getVal() << "\t" << std::endl;
       }
     }
     void printOutputValues(){
-      std::cout << "out of ID: " << id << std::endl;
+      //std::cout << "out of ID: " << id << std::endl;
       for(int i=inputs+formulas ; i<genes.size() ; i++){
         std::cout <<  genes.at(i)->returnValueOfBlock()->getVal() << "\t" << std::endl;
       }
@@ -307,30 +337,40 @@ namespace CGP{
   template <typename T>
   class CGP_Algorithm{
 
-  //DEKLARACJE DOT. FUNKCJI UŻYWANYCH PRZEZ CGP
-    typedef void (* formula)(std::vector<T*> * funcInputs, T *funcOutput);    //definicja typu wskaznika na fcje
-    std::vector<formula> formulasList;                          //lista do ktorej uzytkownik wrzuca zdefiniowane przez siebie funkcje
-    std::vector<int> formulasInputsList;
-    int maxFormulaInputs = 0;
+    //===============================================
+    //  PODSTAWOWE PARAMETRY ALGORYTMU CGP
+    //===============================================
 
-    typedef double (* calcFitness)(std::vector<T*> * inputs, std::vector<T*> * outputs);               //sama funkcja celu, przyjmuje inputy jako wzór i outputy jako przedmiot oceny
-    typedef void (* getRandomInput)( T * whereToWriteValue);
-    calcFitness fitFunc;
-    getRandomInput randVal;
-    std::vector<double> fitnessValues;
+    const int mu = 1;         //wielkość populacji rodziców  (NIE ZMIENIAC! CHYBA ZAHARDKODOWANE)
+    const int lambda = 4;     //wielkośc populacji potomstwa (NIE ZMIENIAC! CHYBA ZAHARDKODOWANE)
 
-    //na sztywno zdefiniowana jest strategia 1+4
-    int mu = 1;         //wielkość populacji rodziców
-    int lambda = 4;      //wielkośc populacji potomstwa
+    int numberOfInputGenes;       //liczba genów które przyjmuja dane z zewnatrz
+    int numberOfProcessingGenes;  //liczba genów które przeprocesowują wartości ale nie zwracają wyniku na zewnątworz
+    int numberOfOutputGenes;      //liczba genów które przeprocesowują wartości i zwracają ich wartość na zewnątrz
 
-    int numberOfInputGenes;
-    int numberOfProcessingGenes;
-    int numberOfOutputGenes;
+    //===============================================
+    // FUNKCJE GENÓW
+    //===============================================
+    typedef void (* formula)(std::vector<T*> * funcInputs, T *funcOutput);    //definicja typu wskaznika na fcje formuły która procesuje wielkości
+    std::vector<formula> formulasList;    //wektor skladujacy formuly zdefiniowane przez uzytkownika
+    std::vector<int> formulasInputsList;  //wektor skladujacy liczbe wejsc korespondującej formuły
+    int maxFormulaInputs = 0;             //maksymalna liczba wejść (spośród wszystkich formuł)
 
-    //DEKLARACJE PUL ORGANIZMÓW UŻYWANYCH PRZEZ CGP
-    std::vector<Program<T> *> organisms;
+    //===============================================
+    //  FUNKCJE OCENIAJĄCE I LOSUJĄCE
+    //===============================================
+    typedef void (* getRandomInput)( T * whereToWriteValue);  //def typu wsk na fcje zwracającą losową wartość dla programu
+    getRandomInput randVal;                                   //wsk na fcje zdef powyżej
+    typedef double (* calcFitness)(Program<T> * p);           //def typu wsk na fcje realizującą ocenę programu
+    calcFitness fitFunc;                                      //wsk na fcje zdef powyżej
+    std::vector<double> fitnessValues;                        //wartosci fitness z danej epoki
+    bool zeroFitnessPanic = false;                            //jeżeli true to osiągnięto próg dopasowania
 
-    //DEKLARACJE FUNKCJI ROZRODCZYCH
+    //===============================================
+    //  PULA ORGANIZMÓW I JEJ FUNKCJE
+    //===============================================
+    std::vector<Program<T> *> organisms;    //wektor organizmów
+
     void makeOffspring(){
       for(int i=mu ; i<organisms.size() ; i++){
         delete organisms[i];
@@ -340,72 +380,83 @@ namespace CGP{
       src->copyProgram(src,dst);
     }
 
-    public:
+    //===============================================
+    //  pozostałe
+    //===============================================
+    long showedProgress = 0;
+    bool verbose_level = false;
+    time_t CGP_runtime;
 
-      /*
-      *   SETUP CGP
-      */
-/*
-      CGP_Algorithm(int muVal, int lambdaVal): mu(muVal), lambda(lambdaVal){
-        std::cout << "CGP_Algorithm constructor" << std::endl;
-      }
-*/
+    //DEKLARACJE FUNKCJI ROZRODCZYCH
+
+
+    public:
+    /*
+      Główny konstruktor klasy CGP_ALgorithm. Jako wejście przyjmuje:
+      -(int) liczba genów wejściowych
+      -(int) liczba genów procesujących
+      -(int) liczba genów procesujących wyjściowych
+      -(func pointer) wskaźnik na funkcję celu
+      -(func pointer) wskaźnik na funkcję losującą
+    */
       CGP_Algorithm(int nOfInputs, int nOfFormulas,  int nOfOutputs, calcFitness fitnessFunctionPointer, getRandomInput randomInputFunctionPointer): numberOfInputGenes(nOfInputs), numberOfProcessingGenes(nOfFormulas), numberOfOutputGenes(nOfOutputs), fitFunc(fitnessFunctionPointer), randVal(randomInputFunctionPointer){
-        std::cout << "CGP_Algorithm constructor" << std::endl;
+        //std::cout << "CGP_Algorithm constructor" << std::endl;
       }
-      //-------------------
+
+    /*
+      Funkcja inicjalizująca organizmy (programy) do CGP_Algorithm. NIe jest zaimnplementowana w konstruktorze, gdyż
+      uzytkownik musi miec czas aby przekazac wskazniki na funkcje pomiedzy utworzeniem instancji klasy a jej wewnetrzna inicjalizacja
+    */
       void setOrganism(){
 
         Program<T> * programToBeAdded;
-        std::cout << "CGP_Algorithm::setOrganism(): adding parents" << std::endl;
+        if(verbose_level)
+          std::cout << "CGP_Algorithm::setOrganism(): adding parents" << std::endl;
         for(int i=1 ; i<=mu ; i++ ){
           programToBeAdded = new Program<T>((-1)*rand(),numberOfInputGenes, numberOfProcessingGenes,  numberOfOutputGenes,formulasList , maxFormulaInputs);
           organisms.push_back(programToBeAdded);
         }
-        std::cout << "CGP_Algorithm::setOrganism(): adding offspring" << std::endl;
+        if(verbose_level)
+          std::cout << "CGP_Algorithm::setOrganism(): adding offspring" << std::endl;
         for(int i=1 ; i<=lambda ; i++ ){
           programToBeAdded = new Program<T>(rand(),numberOfInputGenes, numberOfProcessingGenes, numberOfOutputGenes,formulasList, maxFormulaInputs);
           organisms.push_back(programToBeAdded);
         }
-        programToBeAdded = NULL;
-        std::cout << "Zostal wygenerowany obiekt CGP_Algorithm" << std::endl;
-      }
-      //---------------
-      void testCopyingPrograms(int srcIndex, int dstIndex){
-        copyProgram(organisms.at(srcIndex), organisms.at(dstIndex));
-      }
-      void testMutate(int denominatorOfChance){
-        organisms.at(1)->mutateProgram(denominatorOfChance);
-      }
-      ~CGP_Algorithm(){
 
+        for(int i=0 ; i<organisms.size() ; i++){
+          organisms.at(i)->setupFunctionsInGenes();
+        }
+
+        programToBeAdded = NULL;
+        if(verbose_level)
+          std::cout << "Zostal wygenerowany obiekt CGP_Algorithm" << std::endl;
       }
+      /*
+        Destruktor klasy, brak kluczowych obiektów do ręcznego usunięcia
+      */
+      ~CGP_Algorithm(){}
 
 
       /*
-      *   TUTAJ CGP JUŻ COŚ ROBI
+         Funkcja wywolywana przez uzytkownika w celu uruchomienia dzialania algorytmu. Jako argument przyjmuje:
+          -(int) maksymalną liczbe epok po której algorytm powinien sie zatrzymac
       */
-      //główna funkcja procedująca algorytm CGP dla tego obiektu CGP_Algorithm
-      void doCGP(int epochs, int averagingEpochs){
-        setOrganism();  //USTAW ORGANIZMY
+      void doCGP(int epochs){
+        setOrganism();        //wstepnie ustawia organizmy (programy) uzywane przez algorytm
+        //listOrganisms('a');   //wypisuje organizmy do konsoli
+        time_me(true);
+                                                  //GŁÓWNA PĘTLA ALGORYTMU
         for(int i=0 ; i<epochs ; i++){
-//std::cout << "(0)" << std::endl;
-          //zakładając że CGP jest już skonfigurowane, czyli istnieją rodzice i dzieci jakkolwiek zainicjalizowane
-          for(int avgEp=0; avgEp<averagingEpochs ; avgEp++){
-//std::cout << "(1)" << std::endl;
-              evaluateOrganisms();                    //wykonaj jeden raz dzialanie programu
-//std::cout << "(2)" << std::endl;
-              calculateFitnessForAllOrganisms(averagingEpochs);      //oblicz dopasowanie wszystkich organizmów
-          }
-//std::cout << "(3)" << std::endl;
+          calculateFitnessForAllOrganisms(1);     //oblicz dopasowanie wszystkich organizmów
           chooseBestNewParents();                 //wyznacz najlepsze organizmy które od teraz stają się rodzicami, a reszta staje się dziećmi
-//std::cout << "(4)" << std::endl;
           createOffspring();                      //wypelnij luki po dzieciach nowymi dziecmi z nowych rodzicow
-//std::cout << "(5)" << std::endl;
           mutateOffspring();                      //zmutuj zgodnie z regula wszystkie dzieci
+          showProgress(i,epochs);                 //wypisz postęp
 
+          if(zeroFitnessPanic)                    //wyjdz z petli jesli osiagnieto próg dopasowania
+            break;
         }
-
+        time_me(false);
       }
       /*
       *   NARZĘDZIE GŁÓWNEGO WYKONANIA (wykorzystywane przez doCGP())
@@ -415,30 +466,20 @@ namespace CGP{
         //losowo wypelnij inputy
         for(int org=0 ; org<organisms.size() ; org++){
           for(int inp=0; inp<organisms.at(org)->getNofInputGenes() ; inp++ ){
-//std::cout << "(11) " << org << " " << inp << std::endl;
             randVal(organisms.at(org)->getGeneAt(inp)->returnValueOfBlock());  //zapisz losowa wartosc do inp-owego inputu organizmu ,,org,,
           }
         }
         //przepropaguj inputy do outputow
         for(int org=0 ; org<organisms.size() ; org++){
-            //organisms.at(org)->printInputValues();
-//std::cout << "(12) "<< org << std::endl;
             organisms.at(org)->propagateForwardFull();
-            //organisms.at(org)->printOutputValues();
         }
       }
 
       void calculateFitnessForAllOrganisms(double averagingRounds){
-        std::vector<T*> inValues;//stworz wektor na liste wejsciowych
-        std::vector<T*> outValues;//stworz wektor na liste wyjsciowych
-        //fitnessValues.clear();//wyczysc wektor wartosci fitnesow, bo porzeciez teraz beda nowe
 
         for(int i=0 ; i<organisms.size() ; i++){
-          inValues.clear();//wyzeruj wektor wejsciowych
-          outValues.clear();//wyzeruj wektor wyjsciowych
-          organisms.at(i)->returnDataIntoVectors(&inValues, &outValues);//dla itego programu pobierz wektory wejsiowe i wyjsciowe
           double newFitValue = 0;     //miejsce na obliczana wartosc funkcji celu
-          newFitValue = (fitFunc( &inValues, &outValues ) / averagingRounds); //oblicz funkcje celu z uwzglednieniem usredniania
+          newFitValue = (fitFunc( organisms.at(i) )); //oblicz funkcje celu z uwzglednieniem usredniania
           if(fitnessValues.size() < organisms.size()){
             fitnessValues.push_back(newFitValue);
           }
@@ -467,7 +508,10 @@ namespace CGP{
 
       //zmien ID na ujemne, bo to nowy rodzic
       organisms.at(minFitIndex)->setID( organisms.at(minFitIndex)->getID() * (-1) );
-      std::cout << "Miniimum fitness at organism: " << minFitIndex << " and is " << minFitVal << std::endl;
+      if(verbose_level)
+        std::cout << "Miniimum fitness at organism: " << minFitIndex << " and is " << minFitVal << std::endl;
+      if(minFitVal < 0.0001)
+        zeroFitnessPanic = true;
       //Jezeli liczba rodzicow >1 to trzeba dodac tutaj petle, ktora wyrzuci s fitnessValues minimlane,
       //znowu znajdzie minimum i zmieni mu ID na ujemne
       fitnessValues.clear();
@@ -494,10 +538,20 @@ namespace CGP{
       //mutateProgram(int denominatorOfChance)
       for(int i=0 ; i<organisms.size() ; i++){
         if( organisms.at(i)->getID() >= 0 )
-          organisms.at(i)->mutateProgram(30);
+          organisms.at(i)->mutateProgram(numberOfProcessingGenes+numberOfOutputGenes);
       }
     }
+    void showProgress(int i, int epochs){
 
+      if( i%(epochs/100) == 0 ){
+        showedProgress ++;
+        if(verbose_level)
+          std::cout << "Progress: " << (i*100)/epochs << "%" << std::endl;
+      }
+      else{
+        showedProgress = 0;
+      }
+    }
 
       /*
       *   NARZĘDIA SETUPOWE I TESTOWE
@@ -506,7 +560,7 @@ namespace CGP{
       void listOrganisms(char mode){
           std::cout << "WYPISUJE ID PROGRAMÓW: of " << organisms.size() << std::endl;
           for(int i=0 ; i<organisms.size() ; i++){ //nOfOutputs,formulasList
-            //std::cout << organisms.at(i)->getID()<< std::endl;
+            std::cout << "Organism index: " << i << std::endl;
             organisms.at(i)->printProgram();
           }
       }
@@ -537,7 +591,14 @@ namespace CGP{
         return formulasList.size();
       }
 
+      void time_me(bool isStart){
+        if(!isStart){
+          //std::cout << "Runtime: " << difftime(time(NULL),CGP_runtime) << " s" << std::endl;
+          std::cout << difftime(time(NULL),CGP_runtime) << std::endl;
+        }
 
+        CGP_runtime = time(NULL);
+      }
 
   };
 

@@ -23,7 +23,7 @@ cstdlib
 -
 vector
 -
-time.h
+ctime
 -
 bits/stdc++.h
 -

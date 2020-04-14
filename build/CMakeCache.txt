@@ -15,6 +15,9 @@
 ########################
 
 //Dependencies for target
+Bronco_LIB_DEPENDS:STATIC=
+
+//Dependencies for target
 CGPlib_LIB_DEPENDS:STATIC=
 
 //Path to a program.

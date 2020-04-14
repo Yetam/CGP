@@ -1,93 +1,98 @@
 #include "CGPlib.h"
 #include <iostream>
 
+int verbose_level = 0;
 
 using namespace CGP;
 
+int N = 4;
 
-  class IntegerOwn{ // : public Operational{
-    int val; //integer value
-
-  public:
-    //co tu sie dzieje - Zmienne tworza N
-    //Integer(int startVal);
-
-    IntegerOwn(){val = 2;}                      //WYMAGANA
-    IntegerOwn(int newVal){val=newVal;}
-    void setVal(int newVal){val = newVal;}
-    int getVal(){return val;}
-    void print(){                               //WYMAGANA
-      std::cout << val << std::endl;
-    }
-    void copy(IntegerOwn * src, IntegerOwn * dst){      //WYMAGANA
-      dst->setVal( dst->getVal() );
-    }
-
-  };
-  /* std::vector<T*> * funcInputs, T *funcOutput */
-  void add(std::vector<IntegerOwn*> * funcInputs, IntegerOwn *funcOutput){
-    //out->setVal( a->getVal() + b->getVal() );
-    int output=0;
-    for(int i=0 ; i<funcInputs->size() ; i++){
-      output += funcInputs->at(i)->getVal();
-    }
-    funcOutput->setVal(output);
+void AND(std::vector<bool*> * funcInputs, bool *tuncOutput){        //2 ARGUMENTY
+  bool val = *(funcInputs->at(0)) && *(funcInputs->at(1));
+  *tuncOutput = val;
+}
+void OR(std::vector<bool*> * funcInputs, bool *tuncOutput){        //2 ARGUMENTY
+  bool val =  *(funcInputs->at(0)) || *(funcInputs->at(1));
+  *tuncOutput = val;
+}
+void XOR(std::vector<bool*> * funcInputs, bool *tuncOutput){        //2 ARGUMENTY
+  bool val;// = *(funcInputs->at(0)) ;
+  if(*(funcInputs->at(0)) == *(funcInputs->at(1))){
+    val = false;
   }
-  void multiply(std::vector<IntegerOwn*> * funcInputs, IntegerOwn *funcOutput){
-    //out->setVal( a->getVal() + b->getVal() );
-    int output=1;
-    for(int i=0 ; i<funcInputs->size() ; i++){
-      output *= funcInputs->at(i)->getVal();
+  else{
+    val = true;
+  }
+  *tuncOutput = val;
+}
+void NOT(std::vector<bool*> * funcInputs, bool *tuncOutput){        //2 ARGUMENTY
+  bool val =  !*(funcInputs->at(0));
+  *tuncOutput = val;
+}
+
+double fitnessFunction(std::vector<bool*> * inValues, std::vector<bool*> * outValues){
+
+  return -0.2;
+
+}
+
+/*
+* Poniższą funkcję programuje użytkownik i ona zwraca dopasowanie w formie double
+*/
+double fitness(Program<bool> * p){
+
+    std::vector<bool> v_input;
+    std::vector<bool*> *v_output;
+
+    double wynik = 0;
+    int max_N = 1 << N;
+
+    for(int l=0 ; l<max_N ; l++){
+      v_input.clear();
+      for(int ii=0;ii<N;ii++){
+        v_input.push_back( (bool)(l&(1<<ii)) );
+      }
+      //std::cout << v_input.at(0) << " " << v_input.at(1) << " " << v_input.at(2) << " " << v_input.at(3) << " " << std::endl;
+
+      v_output = p->calcFitnessValue( &v_input );
+      bool val = *v_output->at(0);
+      //std::cout << val << std::endl;
+
+      if(l==max_N-1){
+        if(val == false){
+          wynik += 1;
+        }
+      }
+      else{
+        if(val == true){
+          wynik += 1./max_N;
+        }
+      }
+
     }
-    funcOutput->setVal(output);
-  }
 
-  void getRandomInput(IntegerOwn * placeForNewVal){
-    //placeForNewVal = new IntegerOwn(rand()%60 - 30);
-    placeForNewVal->setVal(rand()%100);
-  }
+    return wynik;
 
-  double fitnessFunction(std::vector<IntegerOwn*> * inValues, std::vector<IntegerOwn*> * outValues){
-    double correctValue;
-    double programGuess;
-
-    correctValue = inValues->at(1)->getVal() + inValues->at(0)->getVal() + inValues->at(0)->getVal() * inValues->at(1)->getVal();
-    programGuess = outValues->at(0)->getVal();
-
-    return (correctValue - programGuess)*(correctValue - programGuess);
-  }
+}
 
 
-int main(){
-    srand(time(NULL));
-    /*
-    //  Stworz obiekt CGP_ALgorithm.
-    //  Argumenty:
-    //    -(int) liczba genów wejściowych
-    //    -(int) liczba genów procesujących
-    //    -(int) liczba genów wyjściowych
-    //    -(func_ptr) wskaźnik na funkcję celu
-    //    -(func_ptr) wskaźnik na funkcję zwracającą losową wartość obiektu algorytmu
-    */
-    CGP_Algorithm<IntegerOwn> mainCGP(2,6,1,fitnessFunction,getRandomInput);
+void getRandomInput(bool * placeForNewVal){
+  *placeForNewVal =  (bool)(rand()%2);
+}
 
-    /*
-    //  Dodawanie formuł możliwych do wykorzystania w genach
-    //  Argumenty:
-    //    -(func_ptr) wskaźnik na funkcję dla formuły
-    //    -(int) liczba argumentów którą przyjmuje dana funkcja formuły
-    */
-    mainCGP.addFormula(add,2);
-    mainCGP.addFormula(multiply,2);
+int main(int argc, char** argv){
+  N = atoi(argv[1]);
 
-    /*
-    //  Uruchomienie algorytmu CGP_Algorithm
-    //  Argumenty:
-    //    -(int) liczba epok algorytmu
-    //    -(int) liczba uśrednień wartości fcji celu w jednej epoce
-    */
-    mainCGP.doCGP(100,10000);
-    mainCGP.listOrganisms('a');
+  srand(time(NULL));
+  CGP_Algorithm<bool> mainCGP(N,50,1,fitness,getRandomInput);
 
-    std::cout << "Get to the choppa" << std::endl;
+  //mainCGP.addFormula(AND,2);
+  mainCGP.addFormula(OR,2);
+  //mainCGP.addFormula(XOR,2);
+  mainCGP.addFormula(NOT,1);
+
+  mainCGP.doCGP(10000000);
+
+
+  return 0;
 }
