@@ -55,13 +55,13 @@ __**Block**__
 * class **Block**
 - [x] WORKS!
 # User must define:
-	* Fitness funtion of form:
-		* double fitness(Program<bool> * p){
-		* 	std::vector<T> v_input;		//vector of input values to program (initialized and filled by user)
-    * 	std::vector<T*> *v_output;	//pointer to vector of input values to program (NOT initialized by user)
-		* 	v_output = p->calcFitnessValue( &v_input );	//calculates outputs from inputs with Porgram p. May be run multiple times if needed
-		* 	returns fitness; //based on input values and output values user must calculate a fitness of given program.
-		* }
+	 Fitness funtion of form:
+		 double fitness(Program<bool> * p){
+		 	std::vector<T> v_input;											//vector of input values to program (initialized and filled by user)
+     	std::vector<T*> *v_output;									//pointer to vector of input values to program (NOT initialized by user)
+		 	v_output = p->calcFitnessValue( &v_input );	//calculates outputs from inputs with Porgram p. May be run multiple times if needed
+		 	returns fitness; 														//based on input values and output values user must calculate a fitness of given program.
+		 }
 
 	* Formulas functions of form:
 		* void XOR(std::vector<T*> * funcInputs, T *tuncOutput){
