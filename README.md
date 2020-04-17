@@ -46,46 +46,47 @@ __**Block**__
 	* input *Block* pointers
 	* its cruciality to current combination
 
-__**Operational**__
-* Item class representing an object (its value/s)
-* Is virtual class. User defining own object type must inherit from it
 
 # Should do:
 
 * class **CGP_Algorithm**
-- [ ] Can instantiate an "organism" - a set of connected _Blocks_ with set functions
-- [ ] Initializes organism with nRows and nCols of empty nodes
-- [ ] Creates _Blocks_ in all nodes of organism and connect them in random manner
-- [ ] Can acquire and store functions as pointers. Each function must operate on two _Operational_ objects (functions are static for all organisms)
-- [ ] Can copy entire organism (Copying _Blocks_ from one organism pointer to another)
-- [ ] Can calculate fitness functions of an organism
-- [ ] Can mutate operation types of an organism with preffered probability
-- [ ] Can mutate connections of an organism with preffered probability
+- [x] WORKS!
 
 * class **Block**
-- [ ] Stores pointers to two input *Blocks*
-- [ ] Stores info about used function
-- [ ] Stores info if the block is inputBlock
-- [ ] Stores info wether this block is crucial to algorithm (whether its output has impact on global output)
-- [ ] Has ability to store value calculated by this _Block_ - exact value that will be passed to output
-- [ ] Can return its value as pointer to it
+- [x] WORKS!
+# User must define:
+	* Fitness funtion of form:
+		* double fitness(Program<bool> * p){
+		* 	std::vector<T> v_input;		//vector of input values to program (initialized and filled by user)
+    * 	std::vector<T*> *v_output;	//pointer to vector of input values to program (NOT initialized by user)
+		* 	v_output = p->calcFitnessValue( &v_input );	//calculates outputs from inputs with Porgram p. May be run multiple times if needed
+		* 	returns fitness; //based on input values and output values user must calculate a fitness of given program.
+		* }
 
-* class **Operational**
-- [ ] Must be inherited for user-defined object (value)
+	* Formulas functions of form:
+		* void XOR(std::vector<T*> * funcInputs, T *tuncOutput){
+		*		//some code that calculates output value from input values vector. User must not define the memory of funcInputs or tuncOutput
+		* }
 
-# Roadmap
-- [x] CGP_Algorithm creates family of mu parents and lanbda offspring
-- [x] It is possible to add functions that operate on n inputs and produce one output
-- [x] Created program initializes itself with *inputs* of inputs, *formulas* of formulas and *outputs* of outputs Blocks stored as vector of pointers to each Block
-- [x] When Block is created it allocates its *value*
-- [x] Program destructor must call for all Block destructors
-- [x] Block destructor must call for all values destructor
-- [x] Completly copy a *Program* with pointer *src* to location under pointer *dst*.Copying must be done only on a *Program* level so that the dependecies between *Blocks* in *src* can be achieved in *dst*
-- [ ] Program able to mutate random Block with *p* chanceG
-	- [ ] mutating connections
-	- [ ] mutating formula
-- [ ] Making offspring from the best adult which should be as first
+# Setting up and running the algorithm
+- CGP_Algorithm<bool> mainCGP( inputGenes, workGenes, outputGenes, fitnessFunction);	//one
+	mainCGP.addFormula(formulaPointer,inputsRequired);
+	mainCGP.doCGP("SETUP");
+	mainCGP.doCGP("PROCEED",epochs);
 
+	user must provide:
+	* inputGenes - number of inputs to program (int)
+	* workGenes - number of genes that run formulas
+	* outputGenes - number of output genes (also running formulas) (int)
+	* fitnessFunction - pointer to fitness function of form:  which measures the program
+	*	formulaPointer - pointer to formula function
+	* inputsRequired - number of inpiuts required by given formula function to work properly
+	* epochs - number of epochs the CGP algorithm is supposed to run
+
+# User may also use:
+	* mainCGP.getBestOrganism(); //returns pointer to lowest fitness Organism
+	* Program::programToString(); //returns std::string with all Program information
+		* each program gene is in new line of form: "(int)ID (int)formula_id (int)input_1 ... (int)input_n"
 
 # Meeting TODO:
 - [x] Program has one dimensional Block graph
