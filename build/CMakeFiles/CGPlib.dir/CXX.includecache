@@ -17,6 +17,8 @@ cstdlib
 /home/mateusz/MAGISTER/CGP_implem/build/CGPlib.h
 list
 -
+string
+-
 iostream
 -
 cstdlib

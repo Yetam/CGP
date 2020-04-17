@@ -6,6 +6,7 @@ int verbose_level = 0;
 using namespace CGP;
 
 int N = 4;
+int reps = 100;
 
 void AND(std::vector<bool*> * funcInputs, bool *tuncOutput){        //2 ARGUMENTY
   bool val = *(funcInputs->at(0)) && *(funcInputs->at(1));
@@ -75,24 +76,24 @@ double fitness(Program<bool> * p){
 
 }
 
-
-void getRandomInput(bool * placeForNewVal){
-  *placeForNewVal =  (bool)(rand()%2);
-}
-
 int main(int argc, char** argv){
   N = atoi(argv[1]);
+  reps = atoi(argv[2]);
 
   srand(time(NULL));
-  CGP_Algorithm<bool> mainCGP(N,50,1,fitness,getRandomInput);
+  CGP_Algorithm<bool> mainCGP(N,24,1,fitness);
 
   //mainCGP.addFormula(AND,2);
   mainCGP.addFormula(OR,2);
   //mainCGP.addFormula(XOR,2);
   mainCGP.addFormula(NOT,1);
 
-  mainCGP.doCGP(10000000);
+  mainCGP.doCGP("SETUP");
+  //mainCGP.doCGP("DIEHARD");
+  mainCGP.doCGP("PROCEED",reps);
 
+  
+  std::cout << mainCGP.getBestOrganism()->programToString() << std::endl;
 
   return 0;
 }
