@@ -7,6 +7,7 @@
 #include<cstdlib>
 #include<vector>
 #include<ctime>
+#include<map>
 #include<bits/stdc++.h>
 
 namespace CGP{
@@ -30,6 +31,7 @@ namespace CGP{
     std::vector<T*> inputValues;      //lista wartości z bloków które są połączone do tego bloku
     int id;
     int formulaId;
+    bool importanceOfBlock;
 
     typedef void (* formula)(std::vector<T*> * funcInputs, T *funcOutput);
     formula myFunction;
@@ -40,6 +42,7 @@ namespace CGP{
 //KONSTRUKTORY
     Block(int blockID, int blockType): id(blockID){
         value = new T();
+        importanceOfBlock = false;
     }
     ~Block(){
       delete value;
@@ -80,6 +83,15 @@ namespace CGP{
       inputs.push_back(nextInput);
       inputValues.push_back(nextInput->value);
     }
+    void setId(int newId){
+      this->id = newId;
+    }
+    bool getImportance(){
+      return importanceOfBlock;
+    }
+    void setImportance(bool newImportance){
+      importanceOfBlock = newImportance;
+    }
     //
 
     //LISTING
@@ -117,6 +129,8 @@ namespace CGP{
   template <typename T>
   class Program{
 
+  private:
+
     std::vector<Block<T> *> genes;              //lista bloków (genów) danego programu
     std::vector<T*> thisProgramOutputValues;    //wektor wielkości wyjściowych (okno na świat dla programu)
     int inputs;                                 //liczba bloków (genów) wejściowych, przyjmujących dane z zewnątrz
@@ -128,11 +142,7 @@ namespace CGP{
     typedef void (* formula)(std::vector<T*> * funcInputs, T *funcOutput);      //definicja wskaznika na funkcje formuly
     std::vector<formula> formulasList;    //lista formuł - dostarczana przez CGP_Algorithm
 
-    //wskazniki na funkcje potrzebne do funkcji celu
-    //typedef double (* calcFitness)(std::vector<T*> * inputs, std::vector<T*> * outputs);               //sama funkcja celu, przyjmuje inputy jako wzór i outputy jako przedmiot oceny
-    //typedef void (* getRandomInput)( T * whereToWriteValue);        //funkcja zapewniajaca zestaw danych wejściowych do programu, wykorzystywana przy obliczaniu fitnessu
-
-      public:
+  public:
     Program(int progID, int nOfInputs, int nOfFormulas,  int nOfOutputs,  std::vector<formula> formulasListPointer, int maxInputs): id(progID), inputs(nOfInputs), formulas(nOfFormulas), outputs(nOfOutputs), formulasList(formulasListPointer), maxInputsToFurmula(maxInputs) /*blockInputs(nOfBlockInputs)*/{
       //std::cout << "\tProgram() Id:" << progID << std::endl;
 
@@ -156,7 +166,6 @@ namespace CGP{
       }
       blockToBeAdded=NULL; //tak w razie czego :)
 
-
       //random fill inputów genów
       for(int i=inputs ; i<genes.size() ; i++){           //dla każdego genu począwszy od pierwszego niewejściowego
         int inputsNumber = maxInputsToFurmula;            //wybierz liczbę g z przedziału (0,i). Będzie to liczba inputów tego genu
@@ -169,32 +178,31 @@ namespace CGP{
         thisProgramOutputValues.push_back(genes.at(currOutGene)->returnValueOfBlock());
       }
 
+      setupFunctionsInGenes();  //ustawienie funkcji w genach
+
   };
 
+  public:
     //Destruktor klasy Program. Wywołuje destruktor klasy Blok na każdym obiekcie z listy bloków
     ~Program(){
       for(int i=0 ; i<genes.size() ; i++){
         delete genes[i];
       }
     }
-
+  public:
     int getNumberOfGenes(){return genes.size();}                                //zwraca liczbę genów
     //int getNofInputGenes(){return inputs;}          //
     int getID(){return id;}                                                     //zwraca ID programu
     void setID(int newID){id = newID;}                                          //ustawia ID programu
+
+  public:
     Block<T> * getGeneAt(int n){return genes.at(n);}                            //zwraca n-ty gen programu
     //int getInputsOfGeneAt( int n ){ return genes.at(n)->getNofInputs(); }
+
+  public:
     void addGene(Block<T> * blockToAdd){genes.push_back(blockToAdd);}           //dodaje gen do puli genów programu
 
-/*
-    void returnDataIntoVectors(std::vector<T*> * inputsVector, std::vector<T*> * outputsVector){
-      for(int i=0 ; i<inputs ; i++){
-        inputsVector->push_back( genes.at(i)->returnValueOfBlock() );
-      }
-      for(int i=inputs+formulas ; i<genes.size() ; i++){
-        outputsVector->push_back( genes.at(i)->returnValueOfBlock() );
-      }
-    }*/
+  public:
     void dropGenes(){
       for(int i=0 ; i<genes.size()  ; i++){
         delete genes[i];
@@ -205,6 +213,7 @@ namespace CGP{
     //==========================================================================
     //    KOPIOWANIE PROGRAMU
     //==========================================================================
+  public:
     void copyProgram(Program * src, Program * dst){
       /*
           Algorytm kopiowania Programu:
@@ -223,8 +232,9 @@ namespace CGP{
         currentID++;
       }
       //przepisywanie połączeń dla każdego genu
-      for(int currGene=0 ; currGene<dst->getNumberOfGenes() ; currGene++){
+      for(int currGene=0 ; currGene<dst->getNumberOfGenes() ; currGene++){      //iterowanie po wszystkich genach
         int inputsOfcurrGene = src->getGeneAt(currGene)->getNofInputs();        //wydobycie liczby połączeń do akurat iterowanego genu
+        dst->getGeneAt(currGene)->setImportance(src->getGeneAt(currGene)->getImportance()); //przepisanie ważności danego genu
         for(int currInput=0 ; currInput<inputsOfcurrGene ; currInput++){        //iterowanie po kolejnych inputach danego genu
           dst->getGeneAt(currGene)->addInput( dst->getGeneAt( src->getGeneAt(currGene)->getNthInput(currInput)->getId() ) );
           //w dst w genie currGene dodaj input będący genem z dst o takim ID jakie ma input currInput z genu currGene w src
@@ -235,36 +245,46 @@ namespace CGP{
       dst->setID( src->getID() );
 
     }
+
     //==========================================================================
     //    MUTOWANIE PROGRAMU
     //==========================================================================
+  private:
     bool isMutate(int denominatorOfChance){
       return rand()%denominatorOfChance==0;
     }
+  public:
     void mutateProgram(int denominatorOfChance){
+      bool organismMutated = false;
       for(int currGene=inputs; currGene<genes.size() ; currGene++){             //iterowanie po kolejnych chromosomach
         for(int currInput = 0 ; currInput<genes.at(currGene)->getNofInputs() ; currInput ++){           //iterowanie po kolejnych inputach chromosomu
           if(isMutate(denominatorOfChance)){                                        //jeżeli ma zajść mutacja połączenia
             genes.at(currGene)->setNthInput(currInput , genes.at( rand()%currGene ) ); //zmutuj losowy input
+            organismMutated = true;
           }
         }
         if(isMutate(denominatorOfChance)){                                        //jeżeli ma zajść mutacja formuły
           genes.at(currGene)->setFormulaId( rand()%formulasList.size()  );
         }
       }
+      if(organismMutated){
+        this->updateImportanceOfGenes();
+      }
+
     }
 
     //==========================================================================
     //    Obliczanie wartosci w genach
     //==========================================================================
+  private:
     void propagateForwardFull(){
-      for(int currGene = inputs ; currGene<genes.size() ; currGene++){
-//std::cout << "(121) " << currGene << " from " << genes.size() << " " << genes.at(currGene)->getInputValuesPointer()->size() << " formula " << genes.at(currGene)->getFormulaId() << " from " << formulasList.size() << std::endl;
-        formulasList.at(genes.at(currGene)->getFormulaId())(
-                          genes.at(currGene)->getInputValuesPointer(),
-                          genes.at(currGene)->returnValueOfBlock()
-                        );
-//std::cout << "(122)" << std::endl;
+      for(int currGene = inputs ; currGene<genes.size() ; currGene++){          //na każdym
+        if( getGeneAt(currGene)->getImportance() ){
+          formulasList.at(genes.at(currGene)->getFormulaId())(
+                            genes.at(currGene)->getInputValuesPointer(),
+                            genes.at(currGene)->returnValueOfBlock()
+                          );
+        }
       }
 
       //aktualizacja wektora wartosci wyjsciowych
@@ -276,14 +296,16 @@ namespace CGP{
     //==========================================================================
     //    Obliczanie funkcji dopasowania
     //==========================================================================
-    /*void calculateFitness(){
-      //ustaw wartosci poczatkowe
-      for(int currGene = inputs ; currGene<genes.size() ; currGene++){
 
+  private:
+    void setupFunctionsInGenes(){
+        for(int currGene=0;currGene<genes.size();currGene++){
+          genes.at(currGene)->setFormulaId( rand()%formulasList.size()  );
+        }
       }
-    }*/
 
-    std::vector<T*> * calcFitnessValue( std::vector<T> * inputValues ){
+  public:
+    std::vector<T*> * proceedProgram( std::vector<T> * inputValues ){
         //ustaw wartości w organiźmie
         if(inputValues->size() != inputs)
           std::cerr << "Fitness function input list size not equal to program input list size" << std::endl;
@@ -294,32 +316,39 @@ namespace CGP{
         return &thisProgramOutputValues;
     }
 
-    void setupFunctionsInGenes(){
-      for(int currGene=0;currGene<genes.size();currGene++){
-        genes.at(currGene)->setFormulaId( rand()%formulasList.size()  );
+    //==========================================================================
+    //    Skracanie programu
+    //==========================================================================
+  public:
+    void updateImportanceOfGenes(){
+      for(int currGene=0 ; currGene<genes.size() ; currGene++ ){                   //zerowanie ważności, wszystko na FALSE
+        genes.at(currGene)->setImportance(false);
+      }
+      for(int currGene=0 ; currGene<genes.size() ; currGene++ ){    //ustawianie na TRUE wszystkich outputów i inputów
+        if(currGene<inputs || currGene>=(inputs+formulas) )
+          genes.at(currGene)->setImportance(true);
+      }
+      for(int currGene=genes.size()-1 ; currGene>=inputs ; currGene--){                    //iterowanie od tyłu w celu znalezienia kluczowych genów
+        if( genes.at(currGene)->getImportance() ){                                                      //jeżeli aktualny gen X jest ważny
+          for(int inputGene=0; inputGene<genes.at(currGene)->getNofInputs() ; inputGene++){ //przeiteruj po wszystkich wejsciach tego genu
+            genes.at(currGene)->getNthInput(inputGene)->setImportance(true);  //ustaw ważność n-tego inputu genu X na true
+
+          }
+        }
       }
     }
 
-    //LISTING
+    //==========================================================================
+    //    Wypisywanie programu
+    //==========================================================================
+  private:
     void printProgram(){
       //std::cout << "ID_programu: " << getID() << std::endl;
       for(int i=0 ; i<genes.size() ; i++){
         genes.at(i)->printBlock();
       }
     }
-
-    void printInputValues(){
-      //std::cout << "in of ID: " << id << std::endl;
-      for(int i=0;i<inputs;i++){
-        std::cout <<  genes.at(i)->returnValueOfBlock()->getVal() << "\t" << std::endl;
-      }
-    }
-    void printOutputValues(){
-      //std::cout << "out of ID: " << id << std::endl;
-      for(int i=inputs+formulas ; i<genes.size() ; i++){
-        std::cout <<  genes.at(i)->returnValueOfBlock()->getVal() << "\t" << std::endl;
-      }
-    }
+  public:
     std::string programToString(){
       std::string output="";
       for(int i=0 ; i<genes.size() ; i++){
@@ -346,6 +375,7 @@ Klasa procedująca algorytm kartezjanskiego programowania genetycznego.
   template <typename T>
   class CGP_Algorithm{
 
+  private:
     //===============================================
     //  PODSTAWOWE PARAMETRY ALGORYTMU CGP
     //===============================================
@@ -408,26 +438,20 @@ Klasa procedująca algorytm kartezjanskiego programowania genetycznego.
       void setOrganism(){
 
         Program<T> * programToBeAdded;
-        if(verbose_level)
-          std::cout << "CGP_Algorithm::setOrganism(): adding parents" << std::endl;
         for(int i=1 ; i<=mu ; i++ ){
           programToBeAdded = new Program<T>((-1)*rand(),numberOfInputGenes, numberOfProcessingGenes,  numberOfOutputGenes,formulasList , maxFormulaInputs);
           organisms.push_back(programToBeAdded);
         }
-        if(verbose_level)
-          std::cout << "CGP_Algorithm::setOrganism(): adding offspring" << std::endl;
         for(int i=1 ; i<=lambda ; i++ ){
           programToBeAdded = new Program<T>(rand(),numberOfInputGenes, numberOfProcessingGenes, numberOfOutputGenes,formulasList, maxFormulaInputs);
           organisms.push_back(programToBeAdded);
         }
-
+/*
         for(int i=0 ; i<organisms.size() ; i++){
           organisms.at(i)->setupFunctionsInGenes();
         }
-
+*/
         programToBeAdded = NULL;
-        if(verbose_level)
-          std::cout << "Zostal wygenerowany obiekt CGP_Algorithm" << std::endl;
       }
 
     //===============================================
@@ -491,6 +515,11 @@ Klasa procedująca algorytm kartezjanskiego programowania genetycznego.
           organisms.at(i)->mutateProgram(numberOfProcessingGenes+numberOfOutputGenes);
       }
     }
+    void calculateImportanceOfGenes(){
+      for(int i=0 ; i<organisms.size() ; i++){
+        organisms.at(i)->updateImportanceOfGenes();
+      }
+    }
 
     //==========================================================================
     //  TWORZENIE I URUCHAMIANIE CGP
@@ -540,14 +569,7 @@ Klasa procedująca algorytm kartezjanskiego programowania genetycznego.
           chooseBestNewParents();                 //wyznacz najlepsze organizmy które od teraz stają się rodzicami, a reszta staje się dziećmi
           createOffspring();                      //wypelnij luki po dzieciach nowymi dziecmi z nowych rodzicow
           mutateOffspring();                      //zmutuj zgodnie z regula wszystkie dzieci
-        }
-      }
-      else if(!s.compare(diehard_flag)){
-        while(return_value == -1){
-          calculateFitnessForAllOrganisms(1);     //oblicz dopasowanie wszystkich organizmów
-          chooseBestNewParents();                 //wyznacz najlepsze organizmy które od teraz stają się rodzicami, a reszta staje się dziećmi
-          createOffspring();                      //wypelnij luki po dzieciach nowymi dziecmi z nowych rodzicow
-          mutateOffspring();                      //zmutuj zgodnie z regula wszystkie dzieci
+          calculateImportanceOfGenes();           //wyznacza które bloki są ważne w danym programie
         }
       }
       return return_value;
@@ -556,14 +578,6 @@ Klasa procedująca algorytm kartezjanskiego programowania genetycznego.
     //===============================================
     //  MODYFIKOWANIE I CZYTANIE Z CGP_ALgorithm
     //===============================================
-
-      void listOrganisms(char mode){    //wypisywanie organizmów na konsolę
-          std::cout << "WYPISUJE ID PROGRAMÓW: of " << organisms.size() << std::endl;
-          for(int i=0 ; i<organisms.size() ; i++){ //nOfOutputs,formulasList
-            std::cout << "Organism index: " << i << std::endl;
-            organisms.at(i)->printProgram();
-          }
-      }
 
       //funkcja dodajaca formula to listy FormulaList
       void addFormula(formula f, int numberOfFormulaInputs){
