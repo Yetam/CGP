@@ -114,6 +114,14 @@ namespace CGP{
       }
       return output;
     }
+    std::string getHash(){
+      std::string output = "";
+      output.append(std::to_string( this->getFormulaId() ));
+      for(int i=0 ; i<this->getNofInputs() ; i++){
+        output.append( std::to_string(inputs.at(i)->getId()) );
+      }
+      return output;
+    }
   };
 
 /* =============================================================================
@@ -356,6 +364,14 @@ namespace CGP{
         output.append("\n");
       }
       return output;
+    }
+    std::string getHash(){
+      std::string output="";
+        output.append(std::to_string( this->getID() ));
+        for(int i=0;i<genes.size();i++){
+          output.append(genes.at(i)->getHash());
+        }
+        return output;
     }
   };
 
